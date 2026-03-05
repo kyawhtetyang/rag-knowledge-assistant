@@ -1,4 +1,4 @@
-# RAG v0 (Flask + pgvector)
+# RAG v0 (FastAPI + pgvector)
 
 Baseline Retrieval-Augmented Generation project with:
 
@@ -45,6 +45,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
+
+FastAPI docs: `http://127.0.0.1:5002/docs`
 
 3. Open UI:
 

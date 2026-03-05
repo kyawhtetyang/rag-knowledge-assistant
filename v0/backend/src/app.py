@@ -1,6 +1,9 @@
 from pathlib import Path
 
-from flask import Flask, jsonify, request
+from fastapi import Body, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from src.db import count_chunks, init_db
 from src.ingest import ingest_default_docs, ingest_paths
@@ -8,29 +11,35 @@ from src.llm import LLM
 from src.retriever import retrieve
 from src.settings import SETTINGS
 
-app = Flask(__name__)
+app = FastAPI(title='RAG v0 API', version='0.1.0')
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 
-@app.after_request
-def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    return response
+class IngestRequest(BaseModel):
+    paths: list[str] | None = None
 
 
-@app.route('/', methods=['GET'])
+class AskRequest(BaseModel):
+    question: str = ''
+    top_k: int | None = None
+
+
+@app.get('/')
 def root():
-    return jsonify(
-        {
-            'service': 'RAG v0 backend',
-            'message': 'Backend is running. Use /health and /api/* endpoints.',
-            'endpoints': ['/health', '/api/init-db', '/api/ingest', '/api/ask'],
-        }
-    )
+    return {
+        'service': 'RAG v0 backend',
+        'message': 'Backend is running. Use /health and /api/* endpoints.',
+        'endpoints': ['/health', '/api/init-db', '/api/ingest', '/api/ask'],
+    }
 
 
-@app.route('/health', methods=['GET'])
+@app.get('/health')
 def health():
     db_status = 'ok'
     chunk_count = 0
@@ -59,33 +68,25 @@ def health():
     }
 
     if db_status == 'not_initialized':
-        payload['hint'] = "Run POST /api/init-db before ingestion."
-
+        payload['hint'] = 'Run POST /api/init-db before ingestion.'
     if db_error:
         payload['db_error'] = db_error
 
-    return jsonify(payload)
+    return payload
 
 
-@app.route('/api/init-db', methods=['POST', 'OPTIONS'])
+@app.post('/api/init-db')
 def api_init_db():
-    if request.method == 'OPTIONS':
-        return ('', 204)
-
     try:
         init_db()
-        return jsonify({'status': 'ok', 'message': 'Database initialized'})
+        return {'status': 'ok', 'message': 'Database initialized'}
     except Exception as exc:
-        return jsonify({'error': str(exc)}), 500
+        return JSONResponse(status_code=500, content={'error': str(exc)})
 
 
-@app.route('/api/ingest', methods=['POST', 'OPTIONS'])
-def api_ingest():
-    if request.method == 'OPTIONS':
-        return ('', 204)
-
-    payload = request.get_json(silent=True) or {}
-    paths = payload.get('paths')
+@app.post('/api/ingest')
+def api_ingest(payload: IngestRequest | None = Body(default=None)):
+    paths = payload.paths if payload else None
 
     try:
         init_db()
@@ -94,22 +95,18 @@ def api_ingest():
             result = ingest_paths(resolved, SETTINGS.chunk_size, SETTINGS.chunk_overlap)
         else:
             result = ingest_default_docs()
-        return jsonify({'status': 'ok', 'ingested': result, 'total_chunks': count_chunks()})
+        return {'status': 'ok', 'ingested': result, 'total_chunks': count_chunks()}
     except Exception as exc:
-        return jsonify({'error': f'Ingestion failed: {exc}'}), 500
+        return JSONResponse(status_code=500, content={'error': f'Ingestion failed: {exc}'})
 
 
-@app.route('/api/ask', methods=['POST', 'OPTIONS'])
-def api_ask():
-    if request.method == 'OPTIONS':
-        return ('', 204)
-
-    payload = request.get_json(silent=True) or {}
-    question = str(payload.get('question', '')).strip()
-    top_k = int(payload.get('top_k') or SETTINGS.default_top_k)
+@app.post('/api/ask')
+def api_ask(payload: AskRequest):
+    question = str(payload.question or '').strip()
+    top_k = int(payload.top_k or SETTINGS.default_top_k)
 
     if not question:
-        return jsonify({'error': "Field 'question' is required."}), 400
+        return JSONResponse(status_code=400, content={'error': "Field 'question' is required."})
 
     try:
         chunks = retrieve(question, top_k)
@@ -123,13 +120,11 @@ def api_ask():
             }
             for c in chunks
         ]
-        return jsonify(
-            {
-                'question': question,
-                'answer': answer,
-                'top_k': top_k,
-                'citations': citations,
-            }
-        )
+        return {
+            'question': question,
+            'answer': answer,
+            'top_k': top_k,
+            'citations': citations,
+        }
     except Exception as exc:
-        return jsonify({'error': f'Query failed: {exc}'}), 500
+        return JSONResponse(status_code=500, content={'error': f'Query failed: {exc}'})

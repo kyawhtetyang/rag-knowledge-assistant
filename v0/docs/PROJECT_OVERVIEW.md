@@ -16,7 +16,7 @@ Text documents
 - `backend/src/ingest.py`: loads files, chunks text, writes embeddings + metadata.
 - `backend/src/retriever.py`: embeds query and runs vector similarity search.
 - `backend/src/llm.py`: generates final answer using retrieved context.
-- `backend/src/app.py`: HTTP API orchestration.
+- `backend/src/app.py`: FastAPI HTTP API orchestration.
 - `frontend/index.html`: minimal UI for ingestion and Q&A.
 
 ## Data Model
