@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Project-local artifacts
+v0/backend/.venv/
+v0/backend/output/
+
+# Logs
+*.log
+
+# Env files
+.env
+.env.*
+!.env.example
