@@ -48,6 +48,7 @@ python3 backend/scripts/first_boot_verify.py http://127.0.0.1:8010
 For a small VPS, keep:
 
 ```text
+API_HOST_PORT=8020
 EMBEDDINGS_PROVIDER=hash
 ```
 
@@ -61,7 +62,7 @@ server {
     server_name rag.kyawhtet.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8010;
+        proxy_pass http://127.0.0.1:8020;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
