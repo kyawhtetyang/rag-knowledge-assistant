@@ -4,6 +4,8 @@ A deployable FastAPI + pgvector RAG system with async ingestion, hybrid retrieva
 
 Internal build name: Mini RAGFlow.
 
+The base Docker image is VPS-friendly and defaults to hash embeddings. Local SentenceTransformers can be enabled by installing `backend/requirements-ml.txt` and setting `EMBEDDINGS_PROVIDER=sentence_transformers`.
+
 ## Quickstart
 
 ```bash
@@ -42,6 +44,14 @@ docker compose up -d --build
 docker compose ps
 python3 backend/scripts/first_boot_verify.py http://127.0.0.1:8010
 ```
+
+For a small VPS, keep:
+
+```text
+EMBEDDINGS_PROVIDER=hash
+```
+
+Use `sentence_transformers` only on a machine where the extra ML dependency weight is acceptable.
 
 Recommended nginx site:
 

@@ -30,4 +30,6 @@ Open:
 - Citation display for retrieved chunks.
 - Stored eval runs for retrieval quality checks.
 - Docker healthchecks for `db`, `api`, and `worker`.
+- Lean VPS base image using hash embeddings by default.
+- Optional local SentenceTransformers dependency file for heavier ML experiments.
 - VPS deployment notes for `rag.kyawhtet.com`.
