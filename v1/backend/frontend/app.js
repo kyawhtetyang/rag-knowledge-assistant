@@ -6,6 +6,7 @@ const askForm = document.querySelector("#askForm");
 const questionInput = document.querySelector("#questionInput");
 const answerText = document.querySelector("#answerText");
 const citations = document.querySelector("#citations");
+const documentList = document.querySelector("#documentList");
 
 async function getJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -22,6 +23,31 @@ async function refreshHealth() {
     healthText.textContent = `Healthy - ${data.settings.embeddings_provider}, ${data.settings.retrieval_mode} retrieval`;
   } catch (error) {
     healthText.textContent = `Service unavailable - ${error.message}`;
+  }
+}
+
+async function refreshDocuments() {
+  try {
+    const data = await getJson("/api/documents");
+    const documents = data.documents || [];
+    documentList.innerHTML = "";
+    if (documents.length === 0) {
+      documentList.textContent = "No indexed documents yet. Upload a file and wait for the job to finish before asking.";
+      return;
+    }
+
+    for (const doc of documents) {
+      const row = document.createElement("div");
+      row.className = "documentItem";
+      const name = document.createElement("span");
+      name.textContent = doc.source;
+      const chunks = document.createElement("span");
+      chunks.textContent = `${doc.chunks} chunks`;
+      row.append(name, chunks);
+      documentList.appendChild(row);
+    }
+  } catch (error) {
+    documentList.textContent = `Could not load indexed documents: ${error.message}`;
   }
 }
 
@@ -71,6 +97,7 @@ uploadForm.addEventListener("submit", async (event) => {
       throw new Error(done.error || "Worker failed");
     }
     jobStatus.textContent = `Job ${queued.job_id}: done`;
+    await refreshDocuments();
   } catch (error) {
     jobStatus.textContent = `Upload failed: ${error.message}`;
   }
@@ -95,3 +122,4 @@ askForm.addEventListener("submit", async (event) => {
 });
 
 refreshHealth();
+refreshDocuments();

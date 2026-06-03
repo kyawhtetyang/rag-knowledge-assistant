@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, File, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import SETTINGS
@@ -27,6 +28,7 @@ from app.services.jobs import create_ingestion_job, get_job
 from app.services.file_text import extract_text_from_upload
 from app.services.retrieval import retrieve
 from app.services.eval import get_eval_run_summary, run_eval
+from app.models import Chunk, Document, IngestionJob
 
 app = FastAPI(title='RAG Knowledge Assistant API', version='1.0.0')
 FRONTEND_DIR = Path(__file__).resolve().parents[1] / 'frontend'
@@ -54,6 +56,59 @@ def health():
             'vector_weight': SETTINGS.vector_weight,
             'fts_weight': SETTINGS.fts_weight,
         },
+    }
+
+
+@app.get('/api/documents')
+async def api_documents(db: AsyncSession = Depends(get_db)):
+    sql = (
+        select(
+            Document.id,
+            Document.source,
+            Document.created_at,
+            func.count(Chunk.id).label('chunks'),
+        )
+        .outerjoin(Chunk, Chunk.document_id == Document.id)
+        .group_by(Document.id, Document.source, Document.created_at)
+        .order_by(desc(Document.id))
+        .limit(25)
+    )
+    rows = (await db.execute(sql)).mappings().all()
+    return {
+        'documents': [
+            {
+                'id': int(row['id']),
+                'source': row['source'],
+                'chunks': int(row['chunks']),
+                'created_at': str(row['created_at']) if row['created_at'] else None,
+            }
+            for row in rows
+        ]
+    }
+
+
+@app.get('/api/jobs')
+async def api_jobs(db: AsyncSession = Depends(get_db)):
+    rows = (
+        await db.execute(
+            select(IngestionJob)
+            .order_by(desc(IngestionJob.id))
+            .limit(10)
+        )
+    ).scalars().all()
+    return {
+        'jobs': [
+            {
+                'id': int(job.id),
+                'status': job.status,
+                'source': job.source,
+                'filename': job.filename,
+                'error': job.error,
+                'created_at': str(job.created_at) if job.created_at else None,
+                'finished_at': str(job.finished_at) if job.finished_at else None,
+            }
+            for job in rows
+        ]
     }
 
 
@@ -168,6 +223,11 @@ async def api_ask(payload: AskRequest, db: AsyncSession = Depends(get_db)):
 
     try:
         chunks = await retrieve(db, question, top_k)
+        if not chunks:
+            return JSONResponse(
+                status_code=404,
+                content={'error': 'No relevant chunks found. Upload a document and wait for the job to finish first.'},
+            )
         answer = LLM.answer(question, chunks)
         citations = [
             {

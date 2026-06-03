@@ -22,7 +22,10 @@ class AnswerGenerator:
             snippet = str(c.get('content', ''))[:240].replace('\n', ' ')
             lines.append(f'{idx}. {snippet}')
         lines.append('')
-        lines.append('Answer: Based on the retrieved passages above, this is the most likely answer.')
+        lines.append(
+            'Answer: Use the cited context above. If the requested field is not visible there, '
+            'the indexed document may not contain it or retrieval did not find the right chunk.'
+        )
         return '\n'.join(lines)
 
 

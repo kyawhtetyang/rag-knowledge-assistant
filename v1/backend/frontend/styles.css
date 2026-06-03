@@ -131,6 +131,22 @@ textarea {
   margin-top: 14px;
 }
 
+.documentList {
+  display: grid;
+  gap: 8px;
+  color: #52616f;
+}
+
+.documentItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #d7e0e8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fbfd;
+}
+
 .citation {
   border-left: 4px solid #176b87;
   background: #f8fbfd;
