@@ -1,3 +1,0 @@
-pgvector is a PostgreSQL extension that adds vector data types and similarity operators.
-You can store embeddings directly in Postgres and run nearest-neighbor queries.
-Common metrics include cosine distance and Euclidean distance.

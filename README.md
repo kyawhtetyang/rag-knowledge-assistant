@@ -2,20 +2,14 @@
 
 A deployable FastAPI + pgvector RAG system with async ingestion, hybrid retrieval, citations, eval runs, Docker healthchecks, and a minimal web UI.
 
-Internal build name: RAG Knowledge Assistant.
+## Active Layout
 
-## Repo Layout
+This repository now uses the repo root as the only active application layout:
 
-- root: current deploy-ready layout for hybrid `Vercel + Render`
-- `v1/`: earlier deployable package history preserved from the original repo
-- `v0/`: baseline RAG assistant history preserved from the original repo
-
-The active deploy target now lives at the repo root:
-- `frontend/` for Vercel
-- `backend/` for Render web service and worker
-- `docker-compose.yml` for local verification
-
-The base Docker image is VPS-friendly and defaults to hash embeddings. Local SentenceTransformers can be enabled by installing `backend/requirements-ml.txt` and setting `EMBEDDINGS_PROVIDER=sentence_transformers`.
+- `frontend/`: Vercel static UI
+- `backend/`: Render web service and worker codebase
+- `docker-compose.yml`: local verification stack
+- `.env.example`: local and hosted environment template
 
 ## Quickstart
 
@@ -40,13 +34,11 @@ Expected result:
 - `/api/ask` returns citations.
 - eval run creation and summary retrieval both complete.
 
-## Hybrid Deploy Target
+## Deployment Target
 
-### Vercel frontend
+### Vercel
 - Root directory: `frontend/`
-- Static entrypoint: `frontend/index.html`
-- Set `frontend/config.js` during deploy so `window.RAG_CONFIG.apiBaseUrl` points at the Render API origin.
-- Leave `apiBaseUrl` empty for local same-origin use.
+- Configure `frontend/config.js` so `window.RAG_CONFIG.apiBaseUrl` points at the Render backend.
 
 Example:
 
@@ -56,30 +48,21 @@ window.RAG_CONFIG = {
 };
 ```
 
-### Render backend
+### Render Web Service
 - Root directory / Docker context: `backend/`
-- Start command shape: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- The container honors Render's `PORT` automatically.
-- Keep `/docs` as the engineering surface and `/api/*` as the product API.
+- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Public endpoints:
+  - `/`
+  - `/health`
+  - `/docs`
+  - `/api/*`
 
-### Render worker
-- Use the same backend codebase.
+### Render Worker
+- Root directory: `backend/`
 - Start command: `python3 -m app.worker`
-- Keep the same environment variables and database connection as the web service.
 
 ### Render Postgres
-- Use a private Postgres instance for documents, chunks, jobs, eval sets, eval runs, and eval results.
-- Point `DATABASE_URL` at the Render Postgres connection string.
-
-## Legacy VPS Notes
-
-The repository history still preserves the older `v1/` VPS-oriented package and the earlier `v0/` baseline. Those remain useful references, but the active deployment direction is now hybrid `Vercel + Render` from the repo root.
-
-## Startup Order
-
-- `db` starts first and must pass `pg_isready`.
-- `api` waits for healthy `db`, applies Alembic migrations, then serves FastAPI.
-- `worker` waits for healthy `db` and healthy `api`, then starts claiming queued ingestion jobs.
+- Provide `DATABASE_URL` for the backend and worker.
 
 ## Recovery
 
@@ -91,12 +74,7 @@ docker compose restart api worker
 ```
 
 ## Notes
-- This is intentionally small and readable.
-- Migrations are handled via Alembic (no init-db endpoint).
-- The Vercel frontend uses `frontend/config.js` for the deploy-time API origin and falls back to same-origin locally.
 
-## Smoke Eval
-
-```bash
-python3 backend/scripts/eval_smoke.py http://127.0.0.1:8010
-```
+- Migrations are handled via Alembic.
+- The active deployment direction is hybrid `Vercel + Render`.
+- Older layouts are preserved in Git history, not in the working tree.
