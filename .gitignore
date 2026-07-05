@@ -1,17 +1,35 @@
+# OS / editor
 .DS_Store
 **/.DS_Store
-.env
-.env.*
-!.env.example
+.vscode/
+.idea/
+
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Virtual environments
 .venv/
 venv/
+env/
+
+# Build artifacts
 dist/
 build/
 *.egg-info/
-__install/
+
+# Logs
 *.log
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Local archive/tooling artifacts
+__install/
+v0/backend/.venv/
+v0/backend/output/

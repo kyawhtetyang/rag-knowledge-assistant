@@ -4,14 +4,22 @@ A deployable FastAPI + pgvector RAG system with async ingestion, hybrid retrieva
 
 Internal build name: RAG Knowledge Assistant.
 
-The frontend shell now lives in `frontend/` for Vercel, while the backend, worker, and Postgres stack stay together on Render. Locally, the backend serves the root shell and the frontend resolves the API base from the same origin by default.
+## Repo Layout
+
+- root: current deploy-ready layout for hybrid `Vercel + Render`
+- `v1/`: earlier deployable package history preserved from the original repo
+- `v0/`: baseline RAG assistant history preserved from the original repo
+
+The active deploy target now lives at the repo root:
+- `frontend/` for Vercel
+- `backend/` for Render web service and worker
+- `docker-compose.yml` for local verification
 
 The base Docker image is VPS-friendly and defaults to hash embeddings. Local SentenceTransformers can be enabled by installing `backend/requirements-ml.txt` and setting `EMBEDDINGS_PROVIDER=sentence_transformers`.
 
 ## Quickstart
 
 ```bash
-cd ~/execution/06_Data_and_AI/09_RAG_Knowledge_Assistant/v0
 cp .env.example .env
 docker compose up -d --build
 open http://127.0.0.1:8010/
@@ -51,7 +59,7 @@ window.RAG_CONFIG = {
 ### Render backend
 - Root directory / Docker context: `backend/`
 - Start command shape: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- The container now honors Render's `PORT` automatically.
+- The container honors Render's `PORT` automatically.
 - Keep `/docs` as the engineering surface and `/api/*` as the product API.
 
 ### Render worker
@@ -63,29 +71,9 @@ window.RAG_CONFIG = {
 - Use a private Postgres instance for documents, chunks, jobs, eval sets, eval runs, and eval results.
 - Point `DATABASE_URL` at the Render Postgres connection string.
 
-## Legacy VPS Deploy Runbook
+## Legacy VPS Notes
 
-```bash
-sudo mkdir -p /opt/rag_knowledge_assistant
-sudo chown -R "$USER:$USER" /opt/rag_knowledge_assistant
-rsync -a --delete ./ /opt/rag_knowledge_assistant/
-
-cd /opt/rag_knowledge_assistant
-cp .env.example .env
-$EDITOR .env
-docker compose up -d --build
-docker compose ps
-python3 backend/scripts/first_boot_verify.py http://127.0.0.1:8010
-```
-
-For a small VPS, keep:
-
-```text
-API_HOST_PORT=8020
-EMBEDDINGS_PROVIDER=hash
-```
-
-Use `sentence_transformers` only on a machine where the extra ML dependency weight is acceptable.
+The repository history still preserves the older `v1/` VPS-oriented package and the earlier `v0/` baseline. Those remain useful references, but the active deployment direction is now hybrid `Vercel + Render` from the repo root.
 
 ## Startup Order
 

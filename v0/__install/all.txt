@@ -1,0 +1,1396 @@
+```python
+# v2.2/__install/map.txt
+mkdir -p ~/CS/CSO4_GIT/01_AIML_Portfolio/v2.2/__install
+run-install
+cd ~/CS/CSO4_GIT/01_AIML_Portfolio && open v2.2/
+
+cd ~/CS/CSO4_GIT/01_AIML_Portfolio/v2.2/
+python __install/run_back.py
+open __install/all_back.txt
+
+cd ~/CS/CSO4_GIT/01_AIML_Portfolio/v2.2/
+open __install/all.txt
+python __install/run.py
+
+cd ~/CS/CSO4_GIT/01_AIML_Portfolio/v2.2/
+conda activate fk       
+npm install
+npm run dev
+
+cd ~/CS/CSO4_GIT/9_AI-ML-Portfolio
+git add .
+git commit -m "Initial commit with minor updates"
+git push -u origin main  
+```
+
+
+
+### __install/map.txt
+```python
+# v2.2/__install/map.txt
+v2.2/
+├─ components/
+│   ├─ AppCard.tsx
+│   └─ AppDetailModal.tsx
+├─ docs/
+├─ .env.local
+├─ .gitignore
+├─ App.test.tsx
+├─ App.tsx
+├─ README.md
+├─ constants.tsx
+├─ eslint.config.js
+├─ index.css
+├─ index.html
+├─ index.tsx
+├─ metadata.json
+├─ package.json
+├─ projectType.ts
+├─ setupTests.ts
+├─ tsconfig.json
+├─ types.ts
+├─ vite-env.d.ts
+├─ vite.config.ts
+└─ vitest.config.ts
+```
+
+### components
+```python
+# v2.2/components/
+```
+
+#### AppCard.tsx
+```tsx
+# v2.2/components/AppCard.tsx
+import React from 'react';
+import { AppInfo } from '../types';
+import { getProjectFilterType } from '../projectType';
+
+interface AppCardProps {
+  app: AppInfo;
+  onClick: (app: AppInfo) => void;
+}
+
+export const AppCard: React.FC<AppCardProps> = ({ app, onClick }) => {
+  return (
+    <div
+      onClick={() => onClick(app)}
+      className="w-full min-w-0 sm:max-w-[150px] sm:mx-auto flex flex-col gap-1.5 group cursor-pointer active:scale-[0.98] transition-transform"
+    >
+      <div className="relative aspect-square overflow-hidden rounded-[20%] border border-[#D7DEE8] bg-[#F2F4F7] shadow-sm group-hover:shadow-md group-hover:bg-[#E8EDF3] transition-all">
+        <img
+          src={app.icon}
+          alt={app.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div>
+        <h4 className="text-[13px] font-medium text-gray-900 truncate leading-tight">{app.name}</h4>
+        <p className="text-[11px] text-gray-500 truncate">{getProjectFilterType(app)}</p>
+      </div>
+    </div>
+  );
+};
+```
+
+#### AppDetailModal.tsx
+```tsx
+# v2.2/components/AppDetailModal.tsx
+import React from 'react';
+import { AppInfo } from '../types';
+import { getProjectFilterType } from '../projectType';
+
+interface AppDetailModalProps {
+  app: AppInfo | null;
+  onClose: () => void;
+}
+
+export const AppDetailModal: React.FC<AppDetailModalProps> = ({ app, onClose }) => {
+  if (!app) return null;
+
+  const projectType = getProjectFilterType(app);
+  const projectUrl = app.website;
+  const githubUrl = app.repo || 'https://github.com/kyawhtetyang';
+  const downloadUrl = app.downloadUrl;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 animate-in fade-in duration-300">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      <div className="relative w-full max-w-3xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 py-4 sm:px-6 md:px-10 md:py-6 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-100">
+          <div className="flex items-center gap-4 min-w-0 w-full sm:w-auto">
+            <img src={app.icon} alt={app.name} className="w-16 h-16 rounded-[20%] border border-black/5 shadow-sm object-cover" />
+            <div className="text-left min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{app.name}</h2>
+              <p className="text-sm text-gray-500 break-words">{projectType}</p>
+            </div>
+          </div>
+          <div className="w-full sm:w-auto flex flex-wrap items-center justify-start sm:justify-end gap-2 sm:gap-3">
+            {downloadUrl && (
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 sm:px-5 py-1.5 bg-[#fa233b] text-white font-bold rounded-full text-sm hover:bg-[#d91e33] transition-colors"
+              >
+                Download
+              </a>
+            )}
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 sm:px-5 py-1.5 bg-gray-100 text-[#1d1d1f] font-bold rounded-full text-sm hover:bg-gray-200 transition-colors"
+            >
+              GitHub
+            </a>
+            {projectUrl && (
+              <a
+                href={projectUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 sm:px-5 py-1.5 bg-gray-100 text-blue-600 font-bold rounded-full text-sm hover:bg-gray-200 transition-colors"
+              >
+                Open
+              </a>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 text-left">
+          <div className="space-y-8">
+            <section>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#fa233b] mb-2">Overview</h3>
+              <p className="text-gray-600 leading-relaxed text-sm">{app.overview}</p>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#fa233b] mb-2">Tech Stack</h3>
+              <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-line">{app.stack}</p>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#fa233b] mb-2">Outcome</h3>
+              <p className="text-gray-600 leading-relaxed text-sm">{app.outcome}</p>
+
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+### docs
+```python
+# v2.2/docs/
+```
+
+### .env.local
+```shell
+# v2.2/.env.local
+GEMINI_API_KEY=PLACEHOLDER_API_KEY
+VITE_FORMSPREE_ENDPOINT=https://formspree.io/f/mojndqrg
+```
+
+### .gitignore
+```text
+# v2.2/.gitignore
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+```
+
+### App.test.tsx
+```tsx
+# v2.2/App.test.tsx
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+describe('App', () => {
+  it('renders Discover section by default', () => {
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Discover' })).toBeInTheDocument();
+    expect(screen.getByText('Kyaw Htet | AI/ML Engineer & Product Builder')).toBeInTheDocument();
+  });
+});
+```
+
+### App.tsx
+```tsx
+# v2.2/App.tsx
+
+import React, { useState, useMemo } from 'react';
+import { Category, AppInfo } from './types';
+import { PROJECT_FILTERS, ProjectFilter, getProjectFilterType } from './projectType';
+import { APPS } from './constants';
+import { AppCard } from './components/AppCard';
+import { AppDetailModal } from './components/AppDetailModal';
+import profilePhoto from './docs/01_AIML_Portfolio.png';
+
+
+const SidebarItem: React.FC<{
+  category: Category;
+  active: boolean;
+  onClick: (cat: Category) => void;
+  icon: React.ReactNode;
+}> = ({ category, active, onClick, icon }) => (
+  <button
+    onClick={() => onClick(category)}
+    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group ${
+      active
+        ? 'bg-black/5 text-[#1d1d1f]'
+        : 'text-gray-500 hover:bg-black/5 hover:text-[#1d1d1f]'
+    }`}
+  >
+    <span className={`${active ? 'text-[#1d1d1f]' : 'text-gray-400 group-hover:text-[#1d1d1f]'}`}>
+      {icon}
+
+    </span>
+    <span className="text-sm font-semibold">{category}</span>
+  </button>
+);
+
+const App: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState<Category>(Category.Discover);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<ProjectFilter>('Featured');
+  const [selectedApp, setSelectedApp] = useState<AppInfo | null>(null);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactProjectType, setContactProjectType] = useState('AI/ML');
+  const [contactMessage, setContactMessage] = useState('');
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  const [contactSubmitState, setContactSubmitState] = useState<{ type: 'idle' | 'success' | 'error'; message: string }>({
+    type: 'idle',
+    message: ''
+  });
+  const isDiscoverPage = selectedCategory === Category.Discover;
+  const isChatPage = selectedCategory === Category.Chat;
+  const profile = {
+    email: 'kyaw.htet.yang@gmail.com',
+    linkedin: 'https://linkedin.com/in/kyawhtetyang',
+    github: 'https://github.com/kyawhtetyang',
+    resume: 'https://u.pcloud.link/publink/show?code=kZze2M5ZWWU8Wv1GxPfEbPPJLkhDuB6yEt7k',
+    phone: '+95 388337',
+    location: 'Yangon, Myanmar'
+  };
+
+  const formspreeEndpoint = (import.meta.env.VITE_FORMSPREE_ENDPOINT as string | undefined)?.trim();
+
+  const chatSeedMessages = [
+    {
+      role: 'assistant',
+      text: 'Hi, I am Kyaw Htet’s assistant. Ask me about AI/ML projects, web apps, or collaboration.'
+    },
+    {
+      role: 'user',
+      text: 'I want to build an AI-powered dashboard for my startup.'
+    },
+    {
+      role: 'assistant',
+      text: 'Great. Share your data sources, target users, and launch timeline. I can suggest a build plan and tech stack.'
+    }
+  ];
+
+  const portfolioSkills = [
+    'AI/ML Engineering',
+    'LLM Applications',
+    'Python + FastAPI',
+    'React + TypeScript',
+    'Prompt Engineering',
+    'Model Deployment'
+  ];
+
+  const featuredWork = [
+    {
+      title: 'Fake News Detector (BiLSTM)',
+      summary: 'End-to-end fake news detection pipeline with preprocessing, BiLSTM training, Flask prediction interface, and Docker deployment support.',
+      stack: 'Python, TensorFlow, BiLSTM, Flask, Docker'
+    },
+    {
+      title: 'Movie Recommender (Hybrid)',
+      summary: 'Hybrid recommendation MVP combining user/item/content/latent methods with Flask web pages, dynamic recommendations, and SQLite-backed ratings.',
+      stack: 'Python, Flask, SQLite, Hybrid Recommender'
+    },
+    {
+      title: 'File Organizer Pro',
+      summary: 'Automated local file-processing pipeline with step previews, deduplication modes, presets, undo history, and desktop-ready workflow integration.',
+      stack: 'FastAPI, React, Vite, SQLite/Postgres, Tauri'
+    }
+  ];
+
+  const filteredApps = useMemo(() => {
+    let list = APPS;
+
+    if (selectedCategory === Category.Projects && selectedProjectFilter !== 'All') {
+      if (selectedProjectFilter === 'Featured') {
+        list = list.filter(app => app.featured);
+      } else {
+        list = list.filter(app => getProjectFilterType(app) === selectedProjectFilter);
+      }
+    }
+
+    if (searchQuery) {
+      list = list.filter(app =>
+        app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return list;
+  }, [selectedCategory, searchQuery, selectedProjectFilter]);
+
+  const handleAppClick = (app: AppInfo) => {
+    setSelectedApp(app);
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!formspreeEndpoint || formspreeEndpoint.includes('your_form_id')) {
+      setContactSubmitState({
+        type: 'error',
+        message: 'Form is not configured yet. Set VITE_FORMSPREE_ENDPOINT in .env.local.'
+      });
+      return;
+    }
+
+    try {
+      setIsSubmittingContact(true);
+      setContactSubmitState({ type: 'idle', message: '' });
+
+      const response = await fetch(formspreeEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          projectType: contactProjectType,
+          message: contactMessage,
+          source: 'portfolio-contact-form'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Submission failed');
+      }
+
+      setContactSubmitState({
+        type: 'success',
+        message: 'Message sent successfully. I will reply soon.'
+      });
+      setContactName('');
+      setContactEmail('');
+      setContactProjectType('AI/ML');
+      setContactMessage('');
+    } catch {
+      setContactSubmitState({
+        type: 'error',
+        message: 'Unable to send right now. Please try again or use the Email button.'
+      });
+    } finally {
+      setIsSubmittingContact(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex bg-[#f5f5f7]">
+      {/* Sidebar - Desktop Only */}
+      <aside className="hidden lg:flex flex-col w-64 glass border-r border-black/5 p-6 fixed inset-y-0 z-20">
+        <div className="mb-10 pl-2">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="text-2xl font-bold tracking-tight flex items-center gap-2 hover:opacity-85 transition-opacity"
+            aria-label="Reload page"
+          >
+            <img
+              src={profilePhoto}
+              alt="Kyaw Htet"
+              className="w-8 h-8 rounded-full object-cover border border-gray-200"
+            />
+            Kyaw Htet
+          </button>
+        </div>
+
+        <nav className="space-y-1">
+          <SidebarItem
+            category={Category.Discover}
+            active={selectedCategory === Category.Discover}
+            onClick={setSelectedCategory}
+            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
+          />
+          <SidebarItem
+            category={Category.Projects}
+            active={selectedCategory === Category.Projects}
+            onClick={setSelectedCategory}
+            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h8v13H3V7zm10-3h8v16h-8V4z" /></svg>}
+          />
+          <button
+            onClick={() => setSelectedCategory(Category.Chat)}
+            className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group ${
+              selectedCategory === Category.Chat
+                ? 'bg-black/5 text-[#1d1d1f]'
+                : 'text-gray-500 hover:bg-black/5 hover:text-[#1d1d1f]'
+            }`}
+          >
+            <span className="flex items-center gap-3 min-w-0">
+              <span className={`${selectedCategory === Category.Chat ? 'text-[#1d1d1f]' : 'text-gray-400 group-hover:text-[#1d1d1f]'}`}><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h8M8 14h5m8-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </span>
+              <span className="text-sm font-semibold truncate">{Category.Chat}</span>
+            </span>
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+              selectedCategory === Category.Chat
+                ? 'bg-[#1d1d1f] text-white'
+                : 'bg-black/10 text-[#1d1d1f]'
+            }`}>
+              Beta
+            </span>
+          </button>
+        </nav>
+
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 lg:ml-64 pt-0 px-4 pb-4 md:px-6 md:pb-6 lg:px-6 lg:pb-8">
+        <header className="fixed top-0 left-0 right-0 lg:left-64 z-40 px-4 md:px-6 lg:px-6 h-12 md:h-14 bg-white border-b border-black/10 flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg md:text-xl font-semibold text-[#1d1d1f] tracking-tight">{selectedCategory}</h2>
+              {isChatPage && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#fa233b]/10 text-[#fa233b]">
+                  Beta
+                </span>
+              )}
+            </div>
+          </div>
+
+          {!isDiscoverPage && !isChatPage && (
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search Apps..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full md:w-64 lg:w-80 bg-black/5 border-none rounded-xl py-2 px-10 transition-all outline-none text-sm"
+              />
+              <svg className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          )}
+        </header>
+
+        {isDiscoverPage ? (
+          <div className="pt-16 md:pt-20 space-y-8 pb-20">
+            <section>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8 bg-white border border-black/10 rounded-2xl p-6 md:p-7">
+                <h3 className="text-base font-bold text-gray-900 leading-tight">
+                  Kyaw Htet | AI/ML Engineer & Product Builder
+                </h3>
+                <p className="mt-4 text-sm text-gray-600 max-w-3xl">
+                  I combine MBA-level business understanding with hands-on engineering experience in Python, automation, NLP, and machine learning.
+                  This portfolio highlights practical projects, technical strengths, and ways to collaborate.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <a href={profile.linkedin} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-xl bg-white border border-black/10 text-[#1d1d1f] text-sm font-semibold px-4 py-2 hover:bg-gray-50 transition-colors">
+                    LinkedIn
+                  </a>
+                  <a href={profile.github} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-xl bg-white border border-black/10 text-[#1d1d1f] text-sm font-semibold px-4 py-2 hover:bg-gray-50 transition-colors">
+                    GitHub
+                  </a>
+                  <a href={profile.resume} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-xl bg-[#fa233b] text-white text-sm font-semibold px-4 py-2 hover:bg-[#d91e33] transition-colors">
+                    Resume
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setIsContactModalOpen(true)}
+                    className="inline-flex items-center rounded-xl bg-white border border-black/10 text-[#1d1d1f] text-sm font-semibold px-4 py-2 hover:bg-gray-50 transition-colors"
+                  >
+                    Contact
+                  </button>
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 bg-white border border-black/10 rounded-2xl p-6 md:p-7">
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-center justify-between border-b border-black/10 pb-2">
+                    <span className="text-[#6e6e73]">Role</span>
+                    <span className="font-semibold text-[#1d1d1f]">AI/ML Junior Developer</span>
+                  </li>
+                  <li className="flex items-center justify-between border-b border-black/10 pb-2">
+                    <span className="text-[#6e6e73]">Address</span>
+                    <span className="font-semibold text-[#1d1d1f]">{profile.location}</span>
+                  </li>
+                  <li className="flex items-center justify-between border-b border-black/10 pb-2">
+                    <span className="text-[#6e6e73]">Phone</span>
+                    <span className="font-semibold text-[#1d1d1f]">{profile.phone}</span>
+                  </li>
+                  <li className="flex items-center justify-between border-b border-black/10 pb-2">
+                    <span className="text-[#6e6e73]">Status</span>
+                    <span className="font-semibold text-[#1d1d1f]">Open to Collaboration</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span className="text-[#6e6e73]">Email</span>
+                    <span className="font-semibold text-[#1d1d1f] truncate ml-4">{profile.email}</span>
+                  </li>
+                </ul>
+              </div>
+              </div>
+            </section>
+
+            <div className="border-t border-black/10"></div>
+
+            <section>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#fa233b] mb-3">Featured Work</p>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {featuredWork.map((project) => (
+                  <article key={project.title} className="bg-white border border-black/10 rounded-2xl p-5">
+                    <h4 className="text-base font-bold text-gray-900">{project.title}</h4>
+                    <p className="mt-2 text-sm text-gray-600 leading-relaxed">{project.summary}</p>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500">{project.stack}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            <div className="border-t border-black/10"></div>
+
+            <section>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#fa233b] mb-3">Skills</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {portfolioSkills.map((skill) => (
+                  <div key={skill} className="bg-white border border-black/10 rounded-xl px-3 py-2 text-sm font-semibold text-[#1d1d1f] text-center">
+                    {skill}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className="border-t border-black/10"></div>
+
+            <section>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#fa233b] mb-3">Contact</p>
+              <h3 className="text-base font-bold text-gray-900">Want to work together?</h3>
+              <p className="mt-3 text-sm text-gray-600">
+                Send your project brief directly from here.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsContactModalOpen(true)}
+                  className="inline-flex items-center rounded-xl bg-[#fa233b] text-white text-sm font-semibold px-4 py-2 hover:bg-[#d91e33] transition-colors"
+                >
+                  Contact Now
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : isChatPage ? (
+          <div className="pt-16 md:pt-20 pb-36 lg:pb-28">
+            <section className="h-[68vh] min-h-[520px] flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-0 pb-28 space-y-4">
+                {chatSeedMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                        message.role === 'user'
+                          ? 'bg-[#fa233b] text-white'
+                          : 'bg-white border border-black/10 text-[#1d1d1f]'
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className="fixed left-0 right-0 bottom-16 lg:bottom-0 lg:left-64 z-40 px-4 md:px-8 lg:px-12 pb-3 lg:pb-4">
+              <div className="border-t border-black/10 pt-3 md:pt-4">
+                <div className="flex items-end gap-3">
+                  <textarea
+                    rows={1}
+                    placeholder="Type your message..."
+                    className="flex-1 bg-white border border-black/10 rounded-2xl px-4 py-3 text-sm outline-none resize-none"
+                  />
+                  <button
+                    type="button"
+                    className="shrink-0 rounded-xl bg-[#fa233b] text-white text-sm font-semibold px-4 py-2.5 hover:bg-[#d91e33] transition-colors"
+                  >
+                    Send
+                  </button>
+                </div>
+                <p className="text-[11px] text-[#6e6e73] mt-2">
+                  Beta preview. For guaranteed response, use Contact on Discover.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <section className="pt-16 md:pt-20 mb-10">
+              {searchQuery && (
+                <div className="mb-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#fa233b] mb-0">
+                    {`Search Results for "${searchQuery}"`}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {PROJECT_FILTERS.map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setSelectedProjectFilter(filter)}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                      selectedProjectFilter === filter
+                        ? 'bg-[#fa233b] text-white'
+                        : 'bg-white border border-black/10 text-[#1d1d1f] hover:bg-gray-50'
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-4 sm:gap-x-5 gap-y-6">
+                {filteredApps.map(app => (
+                  <AppCard key={app.id} app={app} onClick={handleAppClick} />
+                ))}
+                {filteredApps.length === 0 && (
+                  <div className="col-span-full py-20 text-center">
+                    <p className="text-gray-400 font-medium">No apps found matching your criteria.</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+
+      {/* Mobile Navigation - Only visible on small screens */}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 h-16 glass border-t border-black/5 z-50 flex items-center justify-around px-4">
+        <button onClick={() => setSelectedCategory(Category.Discover)} className={`p-2 rounded-full ${selectedCategory === Category.Discover ? 'text-[#fa233b]' : 'text-gray-400'}`}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+        </button>
+        <button onClick={() => setSelectedCategory(Category.Projects)} className={`p-2 rounded-full ${selectedCategory === Category.Projects ? 'text-[#fa233b]' : 'text-gray-400'}`}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h8v13H3V7zm10-3h8v16h-8V4z" /></svg>
+        </button>
+        <button onClick={() => setSelectedCategory(Category.Chat)} className={`p-2 rounded-full ${selectedCategory === Category.Chat ? 'text-[#fa233b]' : 'text-gray-400'}`}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h8M8 14h5m8-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </button>
+      </nav>
+
+      {isContactModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 animate-in fade-in duration-300">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsContactModalOpen(false)}
+          />
+          <div className="relative w-full max-w-3xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between px-6 py-4 md:px-10 md:py-6 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-100">
+              <div className="text-left">
+                <h2 className="text-xl font-bold text-gray-900">Contact</h2>
+                <p className="text-sm text-gray-500">Share your project brief.</p>
+              </div>
+              <button
+                onClick={() => setIsContactModalOpen(false)}
+                className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 text-left">
+              <form onSubmit={handleContactSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-[#1d1d1f]">Name</span>
+                  <input type="text" value={contactName} onChange={(e) => { setContactName(e.target.value); if (contactSubmitState.type !== 'idle') setContactSubmitState({ type: 'idle', message: '' }); }} placeholder="Your name" className="bg-white/95 border border-black/10 rounded-lg px-4 py-2.5 text-sm outline-none" />
+                </label>
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-[#1d1d1f]">Email</span>
+                  <input type="email" required value={contactEmail} onChange={(e) => { setContactEmail(e.target.value); if (contactSubmitState.type !== 'idle') setContactSubmitState({ type: 'idle', message: '' }); }} placeholder="you@example.com" className="bg-white/95 border border-black/10 rounded-lg px-4 py-2.5 text-sm outline-none" />
+                </label>
+                <label className="flex flex-col gap-2 md:col-span-2">
+                  <span className="text-sm font-medium text-[#1d1d1f]">Project Type</span>
+                  <select value={contactProjectType} onChange={(e) => { setContactProjectType(e.target.value); if (contactSubmitState.type !== 'idle') setContactSubmitState({ type: 'idle', message: '' }); }} className="bg-white/95 border border-black/10 rounded-lg px-4 py-2.5 text-sm outline-none">
+                    <option>AI/ML</option>
+                    <option>Python</option>
+                    <option>Web App</option>
+                    <option>Desktop App</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-2 md:col-span-2">
+                  <span className="text-sm font-medium text-[#1d1d1f]">Message</span>
+                  <textarea rows={6} required value={contactMessage} onChange={(e) => { setContactMessage(e.target.value); if (contactSubmitState.type !== 'idle') setContactSubmitState({ type: 'idle', message: '' }); }} placeholder="Tell me about your goals, expected output, and timeline." className="bg-white/95 border border-black/10 rounded-lg px-4 py-3 text-sm outline-none resize-y" />
+                </label>
+                <div className="md:col-span-2 flex items-center justify-between gap-4 flex-wrap">
+                  <p className="text-xs text-[#6e6e73]">For urgent requests, email me directly.</p>
+                  <button type="submit" disabled={isSubmittingContact} className="inline-flex items-center rounded-lg bg-[#fa233b] text-white text-sm font-semibold px-5 py-2.5 hover:bg-[#d91e33] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">{isSubmittingContact ? 'Sending...' : 'Send Message'}</button>
+                </div>
+                {contactSubmitState.type !== 'idle' && (
+                  <p className={`md:col-span-2 text-sm ${contactSubmitState.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                    {contactSubmitState.message}
+                  </p>
+                )}
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* App Detail Modal */}
+      <AppDetailModal
+        app={selectedApp}
+        onClose={() => setSelectedApp(null)}
+      />
+    </div>
+  );
+};
+
+export default App;
+```
+
+### README.md
+```markdown
+# v2.2/README.md
+# Kyaw Htet Portfolio (v1)
+
+Personal portfolio web app showcasing AI/ML, Python, desktop, and web projects.
+
+## Tech Stack
+
+- React + TypeScript
+- Vite
+- Utility-first styling
+
+## Run Locally
+
+Prerequisite: Node.js 18+
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+## Quality Checks
+
+```bash
+npm run lint
+npm run test
+npm run check
+```
+
+## Contact Form (Formspree)
+
+The `Send Message` button posts directly to Formspree.
+
+1. Create a form in Formspree and copy your endpoint URL.
+2. Set the endpoint in `.env.local`:
+
+```bash
+VITE_FORMSPREE_ENDPOINT=https://formspree.io/f/your_form_id
+```
+
+3. Restart dev server after editing env vars.
+
+## Deployment
+
+Recommended: deploy with Vercel from `main`.
+
+For production on Vercel, also set:
+
+- `VITE_FORMSPREE_ENDPOINT`
+
+## Notes
+
+- Projects include filters: `Featured`, `All`, `AI/ML`, `Python`, `Web App`, `Desktop App`.
+- Project cards open a modal with: `Overview`, `Tech Stack`, `Outcome`.
+- Modal buttons:
+  - `Open` for live demo/website (when available)
+  - `GitHub` for source code
+  - `Download` for direct installer (when available)
+- Contact is handled via a modal from the Discover page (no separate Contact tab).
+```
+
+### constants.tsx
+```tsx
+# v2.2/constants.tsx
+import { AppInfo, Category } from './types';
+import imgAimlPortfolio18 from './docs/18.png';
+import imgGroup19 from './docs/19.png';
+import imgGroup20 from './docs/20.png';
+import imgMusic21 from './docs/21.png';
+import imgFileOrganizer22 from './docs/22.png';
+
+export const APPS: AppInfo[] = [
+  {
+    id: '1',
+    name: 'AI/ML Portfolio',
+    subtitle: 'Portfolio web app showcasing AI and software projects.',
+    category: Category.Projects,
+    icon: imgAimlPortfolio18,
+    banner: imgAimlPortfolio18,
+    overview: 'Personal portfolio experience that presents projects, skills, and collaboration channels clearly.',
+    stack: 'Frontend: React + TypeScript\nStyling: Tailwind\nBuild: Vite',
+    outcome: 'Created a focused portfolio structure optimized for recruiters and clients.',
+    developer: 'Kyaw Htet',
+    website: 'https://kyawhtet.com',
+    repo: 'https://github.com/kyawhtetyang/AI-ML-Portfolio'
+  },
+  {
+    id: '2',
+    name: 'Flask Login User',
+    subtitle: 'User authentication and account session flow.',
+    category: Category.Projects,
+    icon: imgGroup20,
+    banner: imgGroup20,
+    overview: 'Authentication module with secure login/logout and protected routes for role-based access.',
+    stack: 'Frontend: Jinja2 Templates\nBackend: Flask (Python)\nDatabase: SQLite',
+    outcome: 'Delivered a reusable auth foundation for Flask apps with clean session management.',
+    developer: 'Kyaw Htet',
+    repo: 'https://github.com/kyawhtetyang/Flask_LoginUser'
+  },
+  {
+    id: '3',
+    name: 'Flask Cloud Storage',
+    subtitle: 'Upload, store, and manage files in cloud-like flow.',
+    category: Category.Projects,
+    icon: imgGroup20,
+    banner: imgGroup20,
+    overview: 'File upload and retrieval service with structured storage flow and user-friendly file listing.',
+    stack: 'Frontend: Bootstrap\nBackend: Flask (Python)\nStorage: File System',
+    outcome: 'Built a lightweight storage dashboard that reduces manual file handling time.',
+    developer: 'Kyaw Htet',
+    repo: 'https://github.com/kyawhtetyang/Flask_Cloud_Storage'
+  },
+  {
+    id: '4',
+    name: 'Flask POS Inventory',
+    subtitle: 'Point-of-sale and inventory management dashboard.',
+    category: Category.Projects,
+    icon: imgGroup20,
+    banner: imgGroup20,
+    overview: 'Inventory and transaction tracking for retail workflow with stock visibility and sales updates.',
+    stack: 'Frontend: Flask Templates + Charting\nBackend: Flask (Python)\nDatabase: SQLAlchemy/SQLite',
+    outcome: 'Improved visibility of stock and sales operations in one central interface.',
+    developer: 'Kyaw Htet',
+    repo: 'https://github.com/kyawhtetyang/Flask_POS_Inventory'
+  },
+  {
+    id: '5',
+    name: 'FastAPI CRUD',
+    subtitle: 'REST API backend with CRUD operations.',
+    category: Category.Projects,
+    icon: imgGroup20,
+    banner: imgGroup20,
+    overview: 'Backend service with clean CRUD endpoints and maintainable API structure.',
+    stack: 'Backend: FastAPI + Pydantic (Python)\nDatabase: SQLite',
+    outcome: 'Provided a reliable API template for rapid backend prototyping.',
+    developer: 'Kyaw Htet',
+    repo: 'https://github.com/kyawhtetyang/FastAPI_CRUD'
+  },
+  {
+    id: '6',
+    name: 'House Price Regression',
+    subtitle: 'Machine learning model for housing price prediction.',
+    category: Category.Projects,
+    icon: imgGroup19,
+    banner: imgGroup19,
+    overview: 'Regression workflow for estimating property price from key housing features.',
+    stack: 'ML/Engine: Scikit-learn Regression + EDA\nBackend: Python Notebook/Pipeline',
+    outcome: 'Built a reproducible ML pipeline for real-estate price modeling.',
+    developer: 'Kyaw Htet',
+    repo: 'https://github.com/kyawhtetyang'
+  },
+  {
+    id: '7',
+    name: 'Article Analyzer (SBERT)',
+    subtitle: 'Semantic article analysis using SBERT embeddings.',
+    category: Category.Projects,
+    icon: imgGroup19,
+    banner: imgGroup19,
+    overview: 'Semantic similarity engine for comparing article meaning and clustering related content.',
+    stack: 'ML/Engine: SBERT + Transformers + Pandas\nBackend: Flask (Python)\nPackaging: Docker',
+    outcome: 'Enabled better article matching and semantic ranking for content analysis tasks.',
+    developer: 'Kyaw Htet',
+    featured: true,
+    repo: 'https://github.com/kyawhtetyang/ArticleAnalyzer_SBERT'
+  },
+  {
+    id: '8',
+    name: 'Fake News Detector (BiLSTM)',
+    subtitle: 'NLP classification model for fake news detection.',
+    category: Category.Projects,
+    icon: imgGroup19,
+    banner: imgGroup19,
+    overview: 'Sequence model that classifies news content using language patterns to detect misinformation.',
+    stack: 'ML/Engine: TensorFlow BiLSTM + NLP Pipeline\nBackend: Flask (Python)\nPackaging: Docker',
+    outcome: 'Created an end-to-end text classification pipeline for credibility screening experiments.',
+    developer: 'Kyaw Htet',
+    featured: true,
+    website: 'https://fake-news.kyawhtet.com',
+    repo: 'https://github.com/kyawhtetyang/FakeNewsDetector_BiLSTM'
+  },
+  {
+    id: '9',
+    name: 'Movie Recommender (Hybrid)',
+    subtitle: 'Hybrid recommendation engine for movie suggestions.',
+    category: Category.Projects,
+    icon: imgGroup19,
+    banner: imgGroup19,
+    overview: 'Recommendation engine combining collaborative and content-based strategies for personalized results.',
+    stack: 'Frontend: Flask Templates\nBackend: Flask (Python)\nML/Engine: Hybrid Recommender (Scikit-learn)\nDatabase: SQLite',
+    outcome: 'Improved recommendation relevance by blending multiple ranking signals.',
+    developer: 'Kyaw Htet',
+    featured: true,
+    repo: 'https://github.com/kyawhtetyang/MovieRecommender_Hybrid'
+  },
+  {
+    id: '10',
+    name: 'Image Classifier (CNN)',
+    subtitle: 'Convolutional neural network for image classification.',
+    category: Category.Projects,
+    icon: imgGroup19,
+    banner: imgGroup19,
+    overview: 'Computer vision classifier for image categories with model training and inference workflow.',
+    stack: 'ML/Engine: PyTorch CNN + OpenCV\nBackend: Python Inference Pipeline',
+    outcome: 'Delivered a practical baseline model for image recognition experimentation.',
+    developer: 'Kyaw Htet',
+    repo: 'https://github.com/kyawhtetyang/ImageClassifier_CNN'
+  },
+  {
+    id: '11',
+    name: 'Music App',
+    subtitle: 'Apple-inspired music interface and interactions.',
+    category: Category.Projects,
+    icon: imgMusic21,
+    banner: imgMusic21,
+    overview: 'Frontend experience inspired by Apple Music with polished navigation and visual hierarchy.',
+    stack: 'Frontend: React + TypeScript\nBackend: FastAPI\nDatabase/Storage: Postgres + Cloudflare R2',
+    outcome: 'Demonstrated high-fidelity UI implementation and design-system consistency.',
+    developer: 'Kyaw Htet',
+    featured: true,
+    website: 'https://music.kyawhtet.com',
+    repo: 'https://github.com/kyawhtetyang/Music_App'
+  },
+  {
+    id: '12',
+    name: 'Files Organizer',
+    subtitle: 'Smart local file organizer for daily workflow.',
+    category: Category.Projects,
+    icon: imgFileOrganizer22,
+    banner: imgFileOrganizer22,
+    overview: 'Desktop automation utility that organizes files using rule-based sorting for cleaner workspace management, built with a Tauri app shell.',
+    stack: 'Frontend: React + TypeScript\nBackend: FastAPI (Python)\nEngine: File Automation Rules\nDesktop/Packaging: Tauri (.dmg)',
+    outcome: 'Reduced repetitive manual organization and improved daily workflow speed.',
+    developer: 'Kyaw Htet',
+    featured: true,
+    website: 'https://files.kyawhtet.com/',
+    repo: 'https://github.com/kyawhtetyang/File_Organizer',
+    downloadUrl: 'https://github.com/kyawhtetyang/File_Organizer/releases/download/v0.2.0/File.Organizer_0.2.0_aarch64.dmg'
+  }
+];
+```
+
+### eslint.config.js
+```javascript
+# v2.2/eslint.config.js
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  { ignores: ['dist', 'node_modules'] },
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    },
+  }
+);
+```
+
+### index.css
+```css
+# v2.2/index.css
+:root {
+  --brand-accent: #fa233b;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --bg-main: #f5f5f7;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+  background: var(--bg-main);
+}
+
+.glass {
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+}
+```
+
+### index.html
+```html
+# v2.2/index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kyaw Htet Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
+```
+
+### index.tsx
+```tsx
+# v2.2/index.tsx
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+### metadata.json
+```json
+# v2.2/metadata.json
+{
+  "name": "Kyaw Htet Portfolio",
+  "description": "Portfolio web app showcasing AI/ML, Python, desktop, and web projects with live demos, GitHub links, and contact modal.",
+  "requestFramePermissions": []
+}
+```
+
+### package.json
+```json
+# v2.2/package.json
+{
+  "name": "istore---premium-app-experience",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run lint && npm run test && npm run build"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/node": "^22.14.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^9.22.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "jsdom": "^26.0.0",
+    "typescript": "~5.8.2",
+    "typescript-eslint": "^8.26.1",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.9"
+  }
+}
+```
+
+### projectType.ts
+```ts
+# v2.2/projectType.ts
+import { AppInfo } from './types';
+
+export type ProjectFilter = 'Featured' | 'All' | 'AI/ML' | 'Python' | 'Web App' | 'Desktop App';
+
+export const PROJECT_FILTERS: ProjectFilter[] = ['Featured', 'All', 'AI/ML', 'Python', 'Web App', 'Desktop App'];
+
+export const getProjectFilterType = (app: AppInfo): ProjectFilter => {
+  const text = `${app.name} ${app.subtitle} ${app.overview} ${app.stack}`.toLowerCase();
+
+  if (text.includes('ai/ml portfolio') || text.includes('aiml portfolio')) {
+    return 'AI/ML';
+  }
+
+  if (text.includes('fastapi crud')) {
+    return 'Python';
+  }
+
+  if (text.includes('flask pos inventory')) {
+    return 'Python';
+  }
+
+  if (text.includes('music app')) {
+    return 'Web App';
+  }
+
+  if (text.includes('files organizer') || text.includes('file organizer')) {
+    return 'Desktop App';
+  }
+
+  if (
+    text.includes('ml') ||
+    text.includes('ai') ||
+    text.includes('nlp') ||
+    text.includes('cnn') ||
+    text.includes('lstm') ||
+    text.includes('sbert') ||
+    text.includes('recommender') ||
+    text.includes('regression')
+  ) {
+    return 'AI/ML';
+  }
+
+  if (
+    text.includes('automation') ||
+    text.includes('workflow') ||
+    text.includes('organizer') ||
+    text.includes('inventory')
+  ) {
+    return 'Desktop App';
+  }
+
+  if (
+    text.includes('flask') ||
+    text.includes('fastapi') ||
+    text.includes('api') ||
+    text.includes('backend')
+  ) {
+    return 'Python';
+  }
+
+  return 'Web App';
+};
+```
+
+### setupTests.ts
+```ts
+# v2.2/setupTests.ts
+import '@testing-library/jest-dom/vitest';
+```
+
+### tsconfig.json
+```json
+# v2.2/tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "vitest/globals"
+    ],
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}
+```
+
+### types.ts
+```ts
+# v2.2/types.ts
+export enum Category {
+  Discover = 'Discover',
+  Projects = 'Projects',
+  Chat = 'Chat'
+}
+
+export interface AppInfo {
+  id: string;
+  name: string;
+  subtitle: string;
+  category: Category;
+  icon: string;
+  banner: string;
+  overview: string;
+  stack: string;
+  outcome: string;
+  developer: string;
+  featured?: boolean;
+  website?: string;
+  repo?: string;
+  downloadUrl?: string;
+}
+```
+
+### vite-env.d.ts
+```ts
+# v2.2/vite-env.d.ts
+/// <reference types="vite/client" />
+```
+
+### vite.config.ts
+```ts
+# v2.2/vite.config.ts
+import path from 'path';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  server: {
+    port: 3000,
+    host: '0.0.0.0',
+  },
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '.'),
+    }
+  }
+});
+```
+
+### vitest.config.ts
+```ts
+# v2.2/vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './setupTests.ts',
+  },
+});
+```
+
