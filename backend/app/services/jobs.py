@@ -41,6 +41,24 @@ async def get_job(session: AsyncSession, job_id: int) -> IngestionJob | None:
     return res.scalar_one_or_none()
 
 
+async def claim_job_by_id(session: AsyncSession, job_id: int) -> IngestionJob | None:
+    sql = text(
+        """
+        UPDATE ingestion_jobs
+        SET status = 'running', started_at = COALESCE(started_at, NOW()), updated_at = NOW()
+        WHERE id = :id
+          AND status IN ('queued', 'running')
+        RETURNING id;
+        """
+    )
+    row = (await session.execute(sql, {'id': int(job_id)})).first()
+    if not row:
+        return await get_job(session, int(job_id))
+
+    res = await session.execute(select(IngestionJob).where(IngestionJob.id == int(row[0])))
+    return res.scalar_one()
+
+
 async def claim_next_job(session: AsyncSession) -> IngestionJob | None:
     await session.execute(
         text(

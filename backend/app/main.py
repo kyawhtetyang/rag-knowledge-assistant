@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, UploadFile
@@ -28,9 +29,10 @@ from app.services.jobs import create_ingestion_job, get_job
 from app.services.file_text import extract_text_from_upload
 from app.services.retrieval import retrieve
 from app.services.eval import get_eval_run_summary, run_eval
-from app.worker import process_one
+from app.worker import process_job_by_id
 
 app = FastAPI(title='RAG Knowledge Assistant API', version='1.0.0')
+logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = PROJECT_ROOT / 'frontend'
 ACTIVE_FRONTEND_DIR = FRONTEND_DIR
@@ -54,9 +56,9 @@ async def get_db() -> AsyncSession:
         yield session
 
 
-async def process_ingestion_job_inline() -> None:
+async def process_ingestion_job_inline(job_id: int) -> None:
     async with SessionLocal() as session:
-        await process_one(session)
+        await process_job_by_id(session, int(job_id))
 
 
 @app.get('/health')
@@ -159,8 +161,10 @@ async def api_ingest_file_async(
             metadata={'filename': filename},
         )
         await db.commit()
-        await process_ingestion_job_inline()
+        logger.info('ingestion job %s created for %s', job.id, filename)
+        await process_ingestion_job_inline(int(job.id))
         await db.refresh(job)
+        logger.info('ingestion job %s finished with status=%s', job.id, job.status)
         return IngestJobResponse(job_id=int(job.id), status=job.status)
     except Exception as exc:
         await db.rollback()

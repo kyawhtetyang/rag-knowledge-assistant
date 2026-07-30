@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import SessionLocal
 from app.services.file_text import extract_text_from_upload
 from app.services.ingest import ingest_text
-from app.services.jobs import claim_next_job, mark_job_done, mark_job_error
+from app.services.jobs import claim_job_by_id, claim_next_job, mark_job_done, mark_job_error
 
 
 POLL_INTERVAL_SEC = float(os.getenv('WORKER_POLL_INTERVAL', '1.0'))
@@ -20,6 +20,18 @@ async def process_one(session: AsyncSession) -> bool:
     if job is None:
         return False
 
+    return await process_claimed_job(session, job)
+
+
+async def process_job_by_id(session: AsyncSession, job_id: int) -> bool:
+    job = await claim_job_by_id(session, int(job_id))
+    if job is None or job.status in {'done', 'error'}:
+        return False
+
+    return await process_claimed_job(session, job)
+
+
+async def process_claimed_job(session: AsyncSession, job) -> bool:
     try:
         text = extract_text_from_upload(job.filename, job.content)
         await ingest_text(session, source=job.source, text=text, metadata=job.meta)
