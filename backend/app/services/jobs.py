@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import os
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import IngestionJob
+
+
+STALE_JOB_SECONDS = int(os.getenv('INGESTION_JOB_STALE_SECONDS', '300'))
 
 
 def _utcnow() -> datetime:
@@ -38,6 +42,18 @@ async def get_job(session: AsyncSession, job_id: int) -> IngestionJob | None:
 
 
 async def claim_next_job(session: AsyncSession) -> IngestionJob | None:
+    await session.execute(
+        text(
+            """
+            UPDATE ingestion_jobs
+            SET status = 'queued', updated_at = NOW()
+            WHERE status = 'running'
+              AND started_at < NOW() - (:seconds * INTERVAL '1 second');
+            """
+        ),
+        {'seconds': STALE_JOB_SECONDS},
+    )
+
     # Use a single statement with SKIP LOCKED so multiple workers can run safely.
     sql = text(
         """

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -28,6 +28,7 @@ from app.services.jobs import create_ingestion_job, get_job
 from app.services.file_text import extract_text_from_upload
 from app.services.retrieval import retrieve
 from app.services.eval import get_eval_run_summary, run_eval
+from app.worker import process_one
 
 app = FastAPI(title='RAG Knowledge Assistant API', version='1.0.0')
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -51,6 +52,11 @@ app.add_middleware(
 async def get_db() -> AsyncSession:
     async with SessionLocal() as session:
         yield session
+
+
+async def process_ingestion_job_background() -> None:
+    async with SessionLocal() as session:
+        await process_one(session)
 
 
 @app.get('/health')
@@ -139,6 +145,7 @@ async def api_eval_run_summary(run_id: int, db: AsyncSession = Depends(get_db)):
 
 @app.post('/api/ingest-file-async', response_model=IngestJobResponse)
 async def api_ingest_file_async(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ):
@@ -153,6 +160,7 @@ async def api_ingest_file_async(
             metadata={'filename': filename},
         )
         await db.commit()
+        background_tasks.add_task(process_ingestion_job_background)
         return IngestJobResponse(job_id=int(job.id), status=job.status)
     except Exception as exc:
         await db.rollback()
