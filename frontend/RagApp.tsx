@@ -29,6 +29,16 @@ type JobStatus = {
   [key: string]: unknown;
 };
 
+type DocumentSummary = {
+  document_count?: number;
+};
+
+type ClearDemoDataResponse = {
+  documents_deleted?: number;
+  jobs_deleted?: number;
+  status?: string;
+};
+
 const API_STORAGE_KEY = 'ragApiBase';
 const DEFAULT_THEME: Theme = 'dark';
 const normalizeBase = (value: string) => value.trim().replace(/\/$/, '');
@@ -56,6 +66,8 @@ const RagApp: React.FC = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [asking, setAsking] = useState(false);
+  const [documentCount, setDocumentCount] = useState<number | null>(null);
+  const [clearingDemoData, setClearingDemoData] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -90,6 +102,12 @@ const RagApp: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (showAdvanced) {
+      void fetchDocumentSummary();
+    }
+  }, [showAdvanced, apiBase]);
+
   const addMessage = (message: Omit<ChatMessage, 'id'>) => {
     setMessages((current) => [...current, { ...message, id: createId() }]);
   };
@@ -115,11 +133,46 @@ const RagApp: React.FC = () => {
     return data as T;
   };
 
+  const fetchDocumentSummary = async () => {
+    try {
+      const data = await request<DocumentSummary>('/api/documents/summary');
+      setDocumentCount(Number(data.document_count || 0));
+      return data;
+    } catch (error) {
+      setLastStatus(`Document count failed: ${(error as Error).message}`);
+      return null;
+    }
+  };
+
+  const clearDemoData = async () => {
+    const confirmed = window.confirm('This will remove uploaded documents and citations from this demo. Continue?');
+    if (!confirmed) return;
+
+    setClearingDemoData(true);
+    try {
+      const data = await request<ClearDemoDataResponse>('/api/demo-data', { method: 'DELETE' });
+      setDocumentCount(0);
+      setJobId('');
+      setLastStatus(data);
+      addMessage({
+        role: 'system',
+        text: `Cleared ${data.documents_deleted ?? 0} uploaded document${data.documents_deleted === 1 ? '' : 's'} from this demo.`,
+      });
+    } catch (error) {
+      const message = `Clear failed: ${(error as Error).message}`;
+      setLastStatus(message);
+      addMessage({ role: 'assistant', text: message });
+    } finally {
+      setClearingDemoData(false);
+    }
+  };
+
   const fetchJob = async (nextJobId: string) => {
     const data = await request<JobStatus>(`/api/jobs/${nextJobId}`);
     setLastStatus(data);
 
     if (data.status === 'done') {
+      void fetchDocumentSummary();
       addMessage({ role: 'system', text: 'Document is ready. Ask a question when you are ready.' });
       if (pollTimerRef.current) {
         window.clearInterval(pollTimerRef.current);
@@ -155,15 +208,20 @@ const RagApp: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const data = await request<{ job_id?: number }>('/api/ingest-file-async', {
+      const data = await request<{ job_id?: number; status?: string }>('/api/ingest-file-async', {
         method: 'POST',
         body: formData,
       });
       const nextJobId = String(data.job_id || '');
       setJobId(nextJobId);
       setLastStatus(data);
-      addMessage({ role: 'system', text: `Ingestion job ${nextJobId || 'started'} is running.` });
-      startPollingJob(nextJobId);
+      if (data.status === 'done') {
+        await fetchDocumentSummary();
+        addMessage({ role: 'system', text: 'Document is ready. Ask a question when you are ready.' });
+      } else {
+        addMessage({ role: 'system', text: `Ingestion job ${nextJobId || 'started'} is running.` });
+        startPollingJob(nextJobId);
+      }
     } catch (error) {
       setLastStatus(`Upload failed: ${(error as Error).message}`);
       addMessage({ role: 'assistant', text: `Upload failed: ${(error as Error).message}` });
@@ -301,6 +359,20 @@ const RagApp: React.FC = () => {
             <span>Job ID</span>
             <input type="text" value={jobId} onChange={(event) => setJobId(event.target.value)} placeholder="Latest job id" />
           </label>
+          <div className="advanced-stat">
+            <span>Uploaded documents</span>
+            <strong>{documentCount === null ? 'unknown' : documentCount}</strong>
+          </div>
+          <button
+            type="button"
+            className="advanced-danger-button"
+            onClick={() => {
+              void clearDemoData();
+            }}
+            disabled={clearingDemoData}
+          >
+            {clearingDemoData ? 'Clearing...' : 'Clear demo documents'}
+          </button>
           <pre>{formatStatus(lastStatus)}</pre>
         </aside>
       )}

@@ -7,11 +7,13 @@ from fastapi import Depends, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import SETTINGS
 from app.db import SessionLocal
 from app.llm import LLM, redact_sensitive
+from app.models import Document, IngestionJob
 from app.schemas import (
     AskRequest,
     AskResponse,
@@ -187,6 +189,33 @@ async def api_job_status(job_id: int, db: AsyncSession = Depends(get_db)):
         started_at=str(job.started_at) if job.started_at else None,
         finished_at=str(job.finished_at) if job.finished_at else None,
     )
+
+
+@app.get('/api/documents/summary')
+async def api_documents_summary(db: AsyncSession = Depends(get_db)):
+    try:
+        document_count = await db.scalar(select(func.count()).select_from(Document))
+        return {'document_count': int(document_count or 0)}
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={'error': str(exc)})
+
+
+@app.delete('/api/demo-data')
+async def api_clear_demo_data(db: AsyncSession = Depends(get_db)):
+    try:
+        document_count = await db.scalar(select(func.count()).select_from(Document))
+        job_count = await db.scalar(select(func.count()).select_from(IngestionJob))
+        await db.execute(delete(IngestionJob))
+        await db.execute(delete(Document))
+        await db.commit()
+        return {
+            'status': 'cleared',
+            'documents_deleted': int(document_count or 0),
+            'jobs_deleted': int(job_count or 0),
+        }
+    except Exception as exc:
+        await db.rollback()
+        return JSONResponse(status_code=500, content={'error': str(exc)})
 
 
 @app.post('/api/ask', response_model=AskResponse)
