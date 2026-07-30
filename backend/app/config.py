@@ -14,7 +14,14 @@ class Settings(BaseSettings):
     embedding_model: str = 'text-embedding-3-small'
     embedding_dim: int = 384
 
+    llm_provider: str = 'local'
     llm_model: str = 'gpt-4o-mini'
+    gemini_api_key: str | None = None
+    gemini_model: str = 'gemini-2.5-flash'
+    openai_api_key: str | None = None
+    openai_compat_api_key: str | None = None
+    openai_compat_base_url: str | None = None
+    openai_compat_model: str = 'gpt-4o-mini'
 
     chunk_size: int = 220
     chunk_overlap: int = 40

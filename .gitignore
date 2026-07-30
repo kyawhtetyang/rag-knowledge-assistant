@@ -21,6 +21,9 @@ dist/
 build/
 *.egg-info/
 
+# JavaScript dependencies
+node_modules/
+
 # Logs
 *.log
 

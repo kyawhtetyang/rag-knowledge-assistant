@@ -4,13 +4,13 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import SETTINGS
 from app.db import SessionLocal
-from app.llm import LLM
+from app.llm import LLM, redact_sensitive
 from app.schemas import (
     AskRequest,
     AskResponse,
@@ -67,16 +67,21 @@ def health():
             'retrieval_mode': SETTINGS.retrieval_mode,
             'vector_weight': SETTINGS.vector_weight,
             'fts_weight': SETTINGS.fts_weight,
+            'llm_provider': SETTINGS.llm_provider,
+            'llm_model': SETTINGS.gemini_model if SETTINGS.llm_provider == 'gemini' else SETTINGS.openai_compat_model,
+            'gemini_configured': bool(SETTINGS.gemini_api_key),
+            'openai_compat_configured': bool(SETTINGS.openai_compat_api_key or SETTINGS.openai_api_key),
         },
     }
 
 
-@app.get('/', response_class=FileResponse)
+@app.get('/')
 def frontend():
     index_path = ACTIVE_FRONTEND_DIR / 'index.html'
     if index_path.exists():
+        from fastapi.responses import FileResponse
         return FileResponse(index_path)
-    return JSONResponse(status_code=404, content={'error': 'frontend not found'})
+    return {'service': 'RAG Knowledge Assistant API', 'docs': '/docs', 'health': '/health'}
 
 
 @app.post('/api/ingest-text', response_model=IngestResponse)
@@ -188,7 +193,7 @@ async def api_ask(payload: AskRequest, db: AsyncSession = Depends(get_db)):
                 'source': c['source'],
                 'chunk_index': int(c['chunk_index']),
                 'score': float(c['score']),
-                'preview': str(c['content'])[:220],
+                'preview': redact_sensitive(str(c['content'])[:220]),
             }
             for c in chunks
         ]

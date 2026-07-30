@@ -1,28 +1,32 @@
-# 03 Simple Frontend
+# RAG Knowledge Assistant Frontend
 
-Minimal reusable static frontend shell using only:
+React + Vite frontend for the RAG Knowledge Assistant demo.
 
-- `index.html`
-- `styles.css`
-- `app.js`
+## Purpose
+- Keep the public RAG UI aligned with the Kyaw Htet portfolio brand system.
+- Preserve the focused upload, ingestion, ask, status, and citation workflow.
+- Avoid the portfolio sidebar and multi-tab shell for this single-purpose tool.
 
-Use this when you want:
+## Local Run
+```bash
+npm install
+npm run dev
+```
 
-- a FastAPI-served frontend
-- a lightweight prototype
-- a reusable shell without React or Vite
+The Vite dev server uses port `3001`.
 
-What is included:
+## Build
+```bash
+npm run build
+```
 
-- protected sidebar and topbar layout
-- light and dark theme toggle
-- mobile bottom navigation
-- placeholder main content and side rail
+Vercel should use:
+- root directory: `frontend/`
+- build command: `npm run build`
+- output directory: `dist`
 
-What to customize first:
-
-- page title
-- brand badge and brand name
-- sidebar tab label
-- topbar title
-- main workspace content
+## API Base
+- For local development, Vite proxies `/api/*` to `http://127.0.0.1:8010`.
+- Leave the in-app API base override empty when using the local Vite proxy.
+- For Vercel, set `VITE_API_BASE_URL` to the deployed Render backend URL.
+- The in-app API base field can override the Vite env value locally through browser storage.
