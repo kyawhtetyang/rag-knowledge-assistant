@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import BackgroundTasks, Depends, FastAPI, File, UploadFile
+from fastapi import Depends, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -54,7 +54,7 @@ async def get_db() -> AsyncSession:
         yield session
 
 
-async def process_ingestion_job_background() -> None:
+async def process_ingestion_job_inline() -> None:
     async with SessionLocal() as session:
         await process_one(session)
 
@@ -145,7 +145,6 @@ async def api_eval_run_summary(run_id: int, db: AsyncSession = Depends(get_db)):
 
 @app.post('/api/ingest-file-async', response_model=IngestJobResponse)
 async def api_ingest_file_async(
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ):
@@ -160,7 +159,8 @@ async def api_ingest_file_async(
             metadata={'filename': filename},
         )
         await db.commit()
-        background_tasks.add_task(process_ingestion_job_background)
+        await process_ingestion_job_inline()
+        await db.refresh(job)
         return IngestJobResponse(job_id=int(job.id), status=job.status)
     except Exception as exc:
         await db.rollback()
