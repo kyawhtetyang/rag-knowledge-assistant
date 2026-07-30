@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,6 +31,15 @@ class Settings(BaseSettings):
     retrieval_mode: str = 'hybrid'  # vector|fts|hybrid
     vector_weight: float = 1.0
     fts_weight: float = 0.2
+
+    @field_validator('database_url')
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        if value.startswith('postgres://'):
+            return 'postgresql+asyncpg://' + value.removeprefix('postgres://')
+        if value.startswith('postgresql://'):
+            return 'postgresql+asyncpg://' + value.removeprefix('postgresql://')
+        return value
 
 
 SETTINGS = Settings()

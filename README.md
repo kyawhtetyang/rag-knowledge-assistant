@@ -57,6 +57,11 @@ Expected result:
 ### Render Web Service
 - Root directory / Docker context: `backend/`
 - Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Required environment:
+  - `DATABASE_URL=<Render Postgres internal database URL>`
+  - `LLM_PROVIDER=gemini`
+  - `GEMINI_API_KEY=<Gemini API key>`
+  - `GEMINI_MODEL=gemini-2.5-flash`
 - Public endpoints:
   - `/`
   - `/health`
@@ -66,9 +71,11 @@ Expected result:
 ### Render Worker
 - Root directory: `backend/`
 - Start command: `python3 -m app.worker`
+- Use the same backend environment variables, including `DATABASE_URL` and Gemini settings.
 
 ### Render Postgres
 - Provide `DATABASE_URL` for the backend and worker.
+- Render URLs using `postgres://` or `postgresql://` are normalized automatically to `postgresql+asyncpg://`.
 
 ## LLM Provider Setup
 
