@@ -20,6 +20,10 @@ def _get_migration_url() -> str | None:
     url = os.getenv('DATABASE_URL') or os.getenv('DB_URL')
     if not url:
         return None
+    if url.startswith('postgres://'):
+        return 'postgresql+psycopg://' + url.removeprefix('postgres://')
+    if url.startswith('postgresql://'):
+        return 'postgresql+psycopg://' + url.removeprefix('postgresql://')
     return url.replace('+asyncpg', '+psycopg')
 
 
