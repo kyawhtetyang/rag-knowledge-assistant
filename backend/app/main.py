@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -223,6 +223,13 @@ async def api_ask(payload: AskRequest, db: AsyncSession = Depends(get_db)):
     question = (payload.question or '').strip()
     if not question:
         return JSONResponse(status_code=400, content={'error': "Field 'question' is required."})
+
+    document_count = await db.scalar(select(func.count()).select_from(Document))
+    if not int(document_count or 0):
+        raise HTTPException(
+            status_code=400,
+            detail='Please upload a document first, then ask your question. This assistant answers only from uploaded documents.',
+        )
 
     top_k = int(payload.top_k or SETTINGS.default_top_k)
 

@@ -33,6 +33,8 @@ type DocumentSummary = {
   document_count?: number;
 };
 
+const UPLOAD_FIRST_MESSAGE = 'Please upload a document first, then ask your question. This assistant answers only from uploaded documents.';
+
 type ClearDemoDataResponse = {
   documents_deleted?: number;
   jobs_deleted?: number;
@@ -76,6 +78,7 @@ const RagApp: React.FC = () => {
   const hasMessages = messages.length > 0;
   const isDark = theme === 'dark';
   const nextTheme = isDark ? 'light' : 'dark';
+  const hasUploadedDocuments = (documentCount ?? 0) > 0;
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -103,6 +106,10 @@ const RagApp: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    void fetchDocumentSummary();
+  }, [apiBase]);
+
+  useEffect(() => {
     if (showAdvanced) {
       void fetchDocumentSummary();
     }
@@ -128,7 +135,8 @@ const RagApp: React.FC = () => {
     const response = await fetch(buildUrl(path), options);
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error((data as { error?: string }).error || `HTTP ${response.status}`);
+      const errorPayload = data as { detail?: string; error?: string };
+      throw new Error(errorPayload.detail || errorPayload.error || `HTTP ${response.status}`);
     }
     return data as T;
   };
@@ -243,8 +251,15 @@ const RagApp: React.FC = () => {
     if (!trimmedQuestion || asking) return;
 
     setQuestion('');
-    setAsking(true);
     addMessage({ role: 'user', text: trimmedQuestion });
+
+    if (!hasUploadedDocuments) {
+      setLastStatus(UPLOAD_FIRST_MESSAGE);
+      addMessage({ role: 'assistant', text: UPLOAD_FIRST_MESSAGE });
+      return;
+    }
+
+    setAsking(true);
 
     try {
       const data = await request<AskResponse>('/api/ask', {
@@ -417,7 +432,7 @@ const RagApp: React.FC = () => {
             <textarea
               ref={inputRef}
               rows={1}
-              placeholder={uploading ? 'Ingesting document...' : 'Ask anything'}
+              placeholder={uploading ? 'Ingesting document...' : hasUploadedDocuments ? 'Ask about your uploaded document' : 'Upload a document first'}
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               onKeyDown={handleKeyDown}
@@ -440,7 +455,13 @@ const RagApp: React.FC = () => {
             </button>
           </div>
           <p className="composer-note">
-            {uploading ? 'Processing document...' : asking ? 'Thinking...' : 'Answers include citations when retrieval returns sources.'}
+            {uploading
+              ? 'Processing document...'
+              : asking
+                ? 'Thinking...'
+                : hasUploadedDocuments
+                  ? 'Answers include citations when retrieval returns sources.'
+                  : 'Upload a document to start a grounded conversation.'}
           </p>
         </div>
       </main>
