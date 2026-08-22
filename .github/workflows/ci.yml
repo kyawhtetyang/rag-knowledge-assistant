@@ -31,6 +31,7 @@ jobs:
       APP_ENV: test
       LLM_PROVIDER: local
       EMBEDDINGS_PROVIDER: hash
+      PYTHONPATH: ${{ github.workspace }}/backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
