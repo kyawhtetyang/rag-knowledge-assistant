@@ -1,15 +1,17 @@
 # RAG Knowledge Assistant
 
-A deployable FastAPI + pgvector RAG system with async ingestion, hybrid retrieval, citations, eval runs, Docker healthchecks, and a React web UI.
+A deployable FastAPI + pgvector RAG system with worker-owned async ingestion, hybrid retrieval, citations, eval runs, Docker healthchecks, and a React web UI.
 
 ## Active Layout
 
-This repository now uses the repo root as the only active application layout:
+This repository uses the repo root as the only active application layout:
 
 - `frontend/`: Vercel React + Vite UI
 - `backend/`: Render web service and worker codebase
 - `docker-compose.yml`: local verification stack
 - `.env.example`: local and hosted environment template
+- `docs/architecture.md`: runtime ownership and security boundaries
+- `docs/releasing.md`: release convention and validation gate
 
 ## Quickstart
 
@@ -41,8 +43,8 @@ python3 backend/scripts/first_boot_verify.py http://127.0.0.1:8010
 Expected result:
 - `db`, `api`, and `worker` are healthy.
 - `/health` returns `status=ok`.
-- The React frontend runs from Vite locally or from Vercel in production.
-- async ingestion reaches `done`.
+- the React frontend runs from Vite locally or from Vercel in production.
+- async ingestion is accepted with HTTP `202`, then reaches `done` through the worker.
 - `/api/ask` returns citations.
 - eval run creation and summary retrieval both complete.
 
@@ -59,9 +61,14 @@ Expected result:
 - Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - Required environment:
   - `DATABASE_URL=<Render Postgres internal database URL>`
+  - `ALLOWED_ORIGINS=<deployed frontend origin>`
   - `LLM_PROVIDER=gemini`
   - `GEMINI_API_KEY=<Gemini API key>`
   - `GEMINI_MODEL=gemini-2.5-flash`
+- Optional security environment:
+  - `ADMIN_API_KEY=<strong random secret>` enables protected demo-data cleanup.
+  - `MAX_UPLOAD_BYTES=10485760` controls upload size.
+  - `MAX_TEXT_CHARS=2000000` controls text-ingestion size.
 - Public endpoints:
   - `/`
   - `/health`
@@ -71,7 +78,8 @@ Expected result:
 ### Render Worker
 - Root directory: `backend/`
 - Start command: `python3 -m app.worker`
-- Use the same backend environment variables, including `DATABASE_URL` and Gemini settings.
+- Use the same backend environment variables, including `DATABASE_URL` and provider settings.
+- The worker is the sole owner of queued async ingestion execution.
 
 ### Render Postgres
 - Provide `DATABASE_URL` for the backend and worker.
@@ -104,6 +112,10 @@ OPENAI_COMPAT_MODEL=openrouter/free
 
 If the configured provider fails or no key is present, the backend falls back to a conservative local answer path that only answers from retrieved context and says when information is missing.
 
+## CI
+
+GitHub Actions validates backend migrations/tests, frontend lint/build, and the backend Docker image on release branches and pull requests.
+
 ## Recovery
 
 ```bash
@@ -118,3 +130,4 @@ docker compose restart api worker
 - Migrations are handled via Alembic.
 - The active deployment direction is hybrid `Vercel + Render`.
 - Older layouts are preserved in Git history, not in the working tree.
+- `v0.9.x` is the production-foundation stabilization line; `v1.0.0` is reserved for a validated production-stable contract.
