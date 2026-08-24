@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type Theme = 'light' | 'dark';
 type MessageRole = 'assistant' | 'system' | 'user';
@@ -105,16 +105,6 @@ const RagApp: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    void fetchDocumentSummary();
-  }, [apiBase]);
-
-  useEffect(() => {
-    if (showAdvanced) {
-      void fetchDocumentSummary();
-    }
-  }, [showAdvanced, apiBase]);
-
   const addMessage = (message: Omit<ChatMessage, 'id'>) => {
     setMessages((current) => [...current, { ...message, id: createId() }]);
   };
@@ -129,19 +119,25 @@ const RagApp: React.FC = () => {
     }
   };
 
-  const buildUrl = (path: string) => `${apiBase}${path}`;
+  const buildUrl = useCallback(
+    (path: string) => `${apiBase}${path}`,
+    [apiBase],
+  );
 
-  const request = async <T,>(path: string, options: RequestInit = {}): Promise<T> => {
-    const response = await fetch(buildUrl(path), options);
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const errorPayload = data as { detail?: string; error?: string };
-      throw new Error(errorPayload.detail || errorPayload.error || `HTTP ${response.status}`);
-    }
-    return data as T;
-  };
+  const request = useCallback(
+    async <T,>(path: string, options: RequestInit = {}): Promise<T> => {
+      const response = await fetch(buildUrl(path), options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const errorPayload = data as { detail?: string; error?: string };
+        throw new Error(errorPayload.detail || errorPayload.error || `HTTP ${response.status}`);
+      }
+      return data as T;
+    },
+    [buildUrl],
+  );
 
-  const fetchDocumentSummary = async () => {
+  const fetchDocumentSummary = useCallback(async () => {
     try {
       const data = await request<DocumentSummary>('/api/documents/summary');
       setDocumentCount(Number(data.document_count || 0));
@@ -150,7 +146,17 @@ const RagApp: React.FC = () => {
       setLastStatus(`Document count failed: ${(error as Error).message}`);
       return null;
     }
-  };
+  }, [request]);
+
+  useEffect(() => {
+    void fetchDocumentSummary();
+  }, [fetchDocumentSummary]);
+
+  useEffect(() => {
+    if (showAdvanced) {
+      void fetchDocumentSummary();
+    }
+  }, [showAdvanced, fetchDocumentSummary]);
 
   const clearDemoData = async () => {
     const confirmed = window.confirm('This will remove uploaded documents and citations from this demo. Continue?');
